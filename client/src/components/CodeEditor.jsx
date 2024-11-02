@@ -7,6 +7,8 @@ import Output from "./Output";
 import RandomQuestion from "./questions/question";
 
 const CodeEditor = () => {
+  const [socketInfo, setSocketInfo] = useState({ myId: null, opponentId: null });
+
   const editorRef = useRef();
   const [value, setValue] = useState("");
   const [language, setLanguage] = useState("python");
@@ -25,7 +27,7 @@ const CodeEditor = () => {
     <Box>
       <HStack spacing={4}>
         {/* <Output editorRef={editorRef} language={language} /> */}
-        <RandomQuestion editorRef={editorRef} language={language} />
+        <RandomQuestion editorRef={editorRef} language={language} socketInfo={socketInfo}  />
         <Box w="50%">
           <LanguageSelector language={language} onSelect={onSelect} />
           <Editor

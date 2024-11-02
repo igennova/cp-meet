@@ -3,8 +3,9 @@ import { io } from "socket.io-client";
 
 const socket = io("http://localhost:5000");
 
-const Matchmaking = () => {
-  const [isMatched, setIsMatched] = useState(false); // State to track if matched
+const Matchmaking = ({ setSocketInfo }) => { // Accept setSocketInfo as a prop
+  const [isMatched, setIsMatched] = useState(false);
+  const [opponentId, setOpponentId] = useState(null); // State to track opponent ID
 
   useEffect(() => {
     // Join the matchmaking queue when the component mounts
@@ -16,6 +17,8 @@ const Matchmaking = () => {
         `You have been matched with user: ${opponentId} in room: ${roomId}`
       );
       setIsMatched(true); // Update state to indicate match found
+      setOpponentId(opponentId); // Store opponent ID
+      setSocketInfo({ myId: socket.id, opponentId }); // Pass socket IDs up to the parent
     });
 
     // Cleanup on unmount
@@ -26,7 +29,7 @@ const Matchmaking = () => {
 
   return (
     <div className="p-5">
-      {isMatched ? ( // Conditional rendering based on isMatched state
+      {isMatched ? (
         <h1>Done! You are matched!</h1>
       ) : (
         <>

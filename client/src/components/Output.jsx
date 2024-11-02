@@ -1,15 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, Text, useToast } from "@chakra-ui/react";
 import { executeCode } from "../api";
 import axios from "axios";
 import { getroute, questionroute } from "@/api/ApiRoutes";
 import { language_ID } from "@/constants";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000"); // Adjust the URL as needed
 
 const Output = ({ editorRef, language }) => {
   const toast = useToast();
   const [output, setOutput] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    socket.on("victory", (data) => {
+      toast({
+        title: "Victory!",
+        description: data.message,
+        status: "success",
+        duration: 6000,
+      });
+    });
+
+    socket.on("defeat", (data) => {
+      toast({
+        title: "Defeat!",
+        description: data.message,
+        status: "error",
+        duration: 6000,
+      });
+    });
+
+    return () => {
+      socket.off("victory");
+      socket.off("defeat");
+    };
+  }, [toast]);
 
   const runCode = async () => {
     const source_code = editorRef.current.getValue();
@@ -19,18 +47,7 @@ const Output = ({ editorRef, language }) => {
 
     const response = await axios.get(questionroute);
     const problem_id = response.data.question_id;
-    axios
-      .post(getroute, {
-        problem_id,
-        source_code,
-        language_id,
-      })
-      .then((response) => {
-        console.log("Response from backend:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+
     try {
       setIsLoading(true);
       const { run: result } = await executeCode(language, source_code);
@@ -51,9 +68,7 @@ const Output = ({ editorRef, language }) => {
 
   return (
     <Box w="50%">
-      <Text mb={2} fontSize="lg">
-        Output
-      </Text>
+      <Text mb={2} fontSize="lg">Output</Text>
       <Button
         variant="outline"
         colorScheme="green"
@@ -78,4 +93,5 @@ const Output = ({ editorRef, language }) => {
     </Box>
   );
 };
+
 export default Output;
